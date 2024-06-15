@@ -1,0 +1,179 @@
+console.log("lets write java script")
+let songs; //global variable store all the songs
+//seconds to minute
+function convertTime(seconds) {
+  if(isNaN(seconds) || seconds<0){
+    return "00:00";
+  }
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = Math.floor(seconds % 60);
+
+  // Formatting the output to always show two digits for seconds
+  const formattedSeconds = remainingSeconds < 10 ? `0${remainingSeconds}` : remainingSeconds;
+
+  return `${minutes}:${formattedSeconds}`;
+}
+
+
+
+
+
+let currentAudio = new Audio;
+
+async function getSongs(){
+    let song= await fetch('http://127.0.0.1:3000/songs');  //in this line we are faching our song from our folder
+    let response = await song.text();
+    // console.log(response)
+
+
+//creating a div and store all the song data in div in html form
+    let div=document.createElement('div'); 
+    div.innerHTML=response;
+    // console.log(div)
+
+
+//we are taking all the ancor tag from the div which have an song link
+    let ancorTag = div.getElementsByTagName('a')
+    // console.log(ancorTag)
+
+
+//in this line we are iterate in the ancorTag(which store all the href) 
+//and storing all the song link in the array
+    let songsArr=[];
+    for (let index = 0; index < ancorTag.length; index++) {
+        const element = ancorTag[index];
+        // console.log(element)
+        if(element.href.endsWith(".mp3")){
+            songsArr.push(element.href.split("/songs/")[1])  //split remove all the sentences which is before the songs
+        }
+    }
+
+    return songsArr;
+}
+
+
+async function main(){
+    //geting all the song in the form of array
+    songs=await getSongs();
+
+    playMusic(songs[0],true);
+
+    // console.log(songs)
+
+    let ul = document.querySelector(".songsList").getElementsByTagName('ul')[0];
+
+    for (const song of songs) {
+        // ul.innerHTML = ul.innerHTML + `<li> ${song.replaceAll("%20"," ")} </li>` ;
+        ul.innerHTML=ul.innerHTML+ 
+        ` <li>
+        <div class="songBox  flex">
+
+          <div class="song_Icon">
+            <img src="song_icon.svg" class="invert" alt="">
+          </div>
+
+          <div class="song_Detail_container">
+            <div class="song_Name">${song.replaceAll("%20"," ")} </div>
+            shubham
+          </div>
+
+          <div class="play_song_end flex">
+            <div class="playSong">Play Song</div>
+            <img src="playBtn.svg" id="song_container_playBtn" class="invert" alt="">
+          </div>
+        </div>
+       </li>`
+    }
+   
+
+    //first we can find all the  song name which is in list and store in it array
+    let listOfAllSongs = Array.from(document.querySelector('.songsList').getElementsByTagName('li'));
+    listOfAllSongs.forEach((e)=>{
+      e.addEventListener("click",element=>{  //so here we on clicking every list song we find that particular song name and trim it because to remove the space bwteen them
+
+        playMusic(e.querySelector(".song_Name").innerHTML.trim());
+      });
+    });
+  
+}
+
+
+//this function play the music 
+function playMusic(song_Name,pause=false){
+  //var audio = new Audio("/songs/"+song_Name);
+  currentAudio.src= "/songs/"+song_Name
+  document.querySelector(".songInfo").innerText= decodeURI(song_Name);
+  if(!pause){
+    currentAudio.play();
+    playBtn.src="pauseBtn.svg"
+  }
+}
+
+
+let playBtn=document.getElementById("playBtn");
+playBtn.addEventListener("click",()=>{
+  if(currentAudio.paused){
+    currentAudio.play();
+        playBtn.src="pauseBtn.svg"
+      
+      }
+      else{
+        currentAudio.pause();
+        playBtn.src="playBtn.svg"
+      }
+});
+
+
+
+currentAudio.addEventListener("timeupdate",()=>{
+  // console.log(currentAudio.currentTime,currentAudio.duration)
+  let currTime=convertTime(currentAudio.currentTime);
+  let currDuration=convertTime(currentAudio.duration)
+  // console.log(currTime)
+  document.querySelector(".songTime").innerText=`${currTime}/${currDuration}`
+  document.querySelector(".circle").style.left=(currentAudio.currentTime/currentAudio.duration)*100 +"%";
+
+})
+
+//seek bar 
+document.querySelector(".seekBar").addEventListener("click",e=>{
+  let percent=(e.offsetX/e.target.getBoundingClientRect().width)*100;
+  document.querySelector(".circle").style.left=percent +"%";
+  currentAudio.currentTime=((currentAudio.duration)*percent)/100;
+})
+
+//adding event listner to hamburger 
+document.querySelector(".hamburger_svg").addEventListener("click",()=>{
+  document.querySelector(".left").style.left=0+"%";
+})
+
+//adding event listner on cross
+document.querySelector(".cross").addEventListener("click",()=>{
+  document.querySelector(".left").style.left=-100 + "%";
+})
+
+//add eventLishner on next button
+document.getElementById("next").addEventListener("click",()=>{
+  currentAudio.pause();
+ let index=(songs.indexOf(currentAudio.src.split("/songs/")[1]))// console.log(currentAudio.src.split("/songs/")[1]) it is finding the current song 
+  if(index<songs.length-1)
+  playMusic(songs[index+1]);
+})
+
+//add eventLishner on previous btn
+document.getElementById("previous").addEventListener("click",()=>{
+  currentAudio.pause();
+  let index=(songs.indexOf(currentAudio.src.split("/songs/")[1]))// console.log(currentAudio.src.split("/songs/")[1]) it is finding the current song 
+   if(index>0)
+   playMusic(songs[index-1]);
+ })
+
+
+ //add event lishner on volume 
+ document.querySelector(".range").getElementsByTagName("input")[0].addEventListener("change",(e)=>{
+  // console.log(e.target.value)
+  currentAudio.volume=  parseInt(e.target.value)/100;
+ });
+
+
+main();
