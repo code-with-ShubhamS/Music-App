@@ -25,7 +25,7 @@ let currentAudio = new Audio;
 
 async function getSongs(folder){
   currfolder=folder;
-    let song= await fetch(`/songs/${folder}`);  //in this line we are faching our song from our folder
+    let song= await fetch(`http://127.0.0.1:3000/${folder}`);  //in this line we are faching our song from our folder
     let response = await song.text();
     // console.log(response)
 
@@ -121,7 +121,7 @@ function changes(listOfAllSongs,boolea){
 
 
 async function displayAlbums(){
-     let cardAlbums= await fetch(`/songs`);  
+     let cardAlbums= await fetch(`http://127.0.0.1:3000/songs`);  
     let response = await cardAlbums.text();
     let div=document.createElement('div'); 
     div.innerHTML=response;
@@ -134,7 +134,7 @@ async function displayAlbums(){
       // console.log(e.href.split('/').slice(-2)[0]);
        folderName= e.href.split('/').slice(-2)[0];
 
-      let allData= await fetch(`/songs/${folderName}/info.json`);  
+      let allData= await fetch(`http://127.0.0.1:3000/songs/${folderName}/info.json`);  
       let res = await allData.json();
       // console.log(res);
      let card_container= document.querySelector(".cards-container");
@@ -162,7 +162,7 @@ async function displayAlbums(){
     e.addEventListener("click",async items=>{
     //  console.log(items,items.currentTarget.dataset.folder)   
      // console.log(`songs/${currentTarget.dataset.folder}`);
-     songs=await getSongs(`/songs/${items.currentTarget.dataset.folder}`)
+     songs=await getSongs(`songs/${items.currentTarget.dataset.folder}`)
     })
   })
 }
@@ -171,7 +171,7 @@ async function displayAlbums(){
 
 async function main(){
     //geting all the song in the form of array
-    await getSongs("/songs/uttrakhand");
+    await getSongs("songs/uttrakhand");
     playMusic(songs[0],true);
     await displayAlbums();
  
